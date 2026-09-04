@@ -1,0 +1,19 @@
+# Secrets — the real RTSP URL/credentials never go to the public repo
+app/src/main/res/values/secrets.xml
+local.properties
+
+# Build
+.gradle/
+build/
+app/build/
+*.apk
+*.ap_
+*.dex
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store

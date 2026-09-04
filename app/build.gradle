@@ -1,0 +1,29 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'za.web.visser.ancientcam'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'za.web.visser.ancientcam'
+        minSdk 21
+        targetSdk 28          // pre-29 so BOOT_COMPLETED can launch an Activity directly
+        versionCode 1
+        versionName '1.0'
+        ndk { abiFilters 'armeabi-v7a' }   // the Tab2 A7 is 32-bit ARMv7 only
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // CRITICAL on Lollipop: extract the libVLC .so on install, else INSTALL_FAILED_INVALID_APK
+    packaging { jniLibs { useLegacyPackaging = true } }
+
+    buildTypes { debug { debuggable true } }
+}
+
+dependencies {
+    implementation 'org.videolan.android:libvlc-all:3.7.0'   // ships armeabi-v7a, minSdk 17
+}
