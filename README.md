@@ -12,8 +12,9 @@ It does exactly one thing and does it well:
 - **Starts on boot**, keeps the screen on, stays immersive full-screen.
 - **No ads, no accounts, no settings, no bloat.**
 
-Playback is [libVLC](https://www.videolan.org/vlc/libvlc.html) 3.x — the same engine as the VLC app,
-so it plays anything VLC plays (tested against a TP-Link Tapo C320WS over RTSP/TCP).
+Playback is **ExoPlayer / Media3** RTSP forced over TCP. It is a pure-Java stack (no live555),
+which matters on this tablet: libVLC's live555 could not self-detect the local IP (returned
+`0.0.0.0`) and failed every RTSP PLAY. Tested against a TP-Link Tapo C320WS.
 
 ## Build
 
@@ -44,3 +45,15 @@ to an app that has never been launched.
 - **No crop:** `VLCVideoLayout` letterboxes to the source aspect ratio automatically.
 
 Credentials live only in `secrets.xml`, which is git-ignored; the repo ships a template.
+
+## Hard-won notes (Lenovo Tab 2 A7-10F, MT8127, Android 5.0)
+
+- **Use ExoPlayer, not libVLC, here.** libVLC's live555 returned `0.0.0.0` for the local
+  source address on this device and failed every RTSP session. ExoPlayer's RTSP has no such
+  self-IP lookup.
+- **No `@` in camera credentials.** Android 5.0's `Uri` mis-parses `rtsp://user@x:pass@host`,
+  reading the host as the text after the first `@`. Set an `@`-free Camera Account username.
+- **Use `/stream2` (low-res).** The MT8127 hardware H264 decoder cannot initialize 2K
+  (`/stream1`) — `ERROR_CODE_DECODER_INIT_FAILED`. The sub-stream decodes fine.
+- **No boot-autostart.** Launching heavy video during this tablet's fragile, low-battery boot
+  crashed `surfaceflinger` and hung the boot. Launch the app by hand after the system is up.

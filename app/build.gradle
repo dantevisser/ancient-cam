@@ -18,12 +18,15 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    // CRITICAL on Lollipop: extract the libVLC .so on install, else INSTALL_FAILED_INVALID_APK
     packaging { jniLibs { useLegacyPackaging = true } }
 
     buildTypes { debug { debuggable true } }
 }
 
 dependencies {
-    implementation 'org.videolan.android:libvlc-all:3.7.0'   // ships armeabi-v7a, minSdk 17
+    // ExoPlayer/Media3: pure-Java RTSP (no live555), so no ourIPAddress()/0.0.0.0 problem.
+    // media3 1.x supports minSdk 21. RtspMediaSource can force RTP-over-TCP.
+    implementation 'androidx.media3:media3-exoplayer:1.4.1'
+    implementation 'androidx.media3:media3-exoplayer-rtsp:1.4.1'
+    implementation 'androidx.media3:media3-ui:1.4.1'
 }
