@@ -44,6 +44,8 @@ public class PlayerActivity extends Activity {
     private ExoPlayer player;
     private PlayerView playerView;
     private PowerManager.WakeLock wakeLock;
+    private CameraLocator locator;
+    private String activeHost;
 
     private long lastPos = -1;
     private volatile long lastProgressMs;
@@ -58,6 +60,7 @@ public class PlayerActivity extends Activity {
                         | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         setContentView(R.layout.activity_player);
         playerView = findViewById(R.id.player_view);
+        locator = new CameraLocator(getString(R.string.rtsp_url));
         applyImmersive();
 
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
@@ -95,10 +98,13 @@ public class PlayerActivity extends Activity {
         player = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
 
+        activeHost = locator.pickHost();
+        String url = locator.urlFor(activeHost);
+        Log.i(TAG, "opening camera at " + activeHost);
         MediaSource source = new RtspMediaSource.Factory()
                 .setForceUseRtpTcp(true)       // TCP interleaved: no UDP local-source-address lookup
                 .setTimeoutMs(10000)
-                .createMediaSource(MediaItem.fromUri(Uri.parse(getString(R.string.rtsp_url))));
+                .createMediaSource(MediaItem.fromUri(Uri.parse(url)));
 
         player.setMediaSource(source);
         player.setPlayWhenReady(true);
@@ -119,6 +125,7 @@ public class PlayerActivity extends Activity {
         @Override
         public void onRenderedFirstFrame() {
             lastProgressMs = SystemClock.elapsedRealtime();
+            if (activeHost != null) locator.onFrames(activeHost);   // this host is the camera; lock it
         }
     };
 
@@ -149,6 +156,7 @@ public class PlayerActivity extends Activity {
         handler.removeCallbacks(watchdog);
         handler.postDelayed(() -> {
             reconnectPending = false;
+            locator.onFailure();     // count the failure; after a couple, rescan the LAN for the camera
             release();
             open();
             handler.postDelayed(watchdog, WATCH_EVERY_MS);

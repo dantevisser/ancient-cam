@@ -57,3 +57,11 @@ Credentials live only in `secrets.xml`, which is git-ignored; the repo ships a t
   (`/stream1`) — `ERROR_CODE_DECODER_INIT_FAILED`. The sub-stream decodes fine.
 - **No boot-autostart.** Launching heavy video during this tablet's fragile, low-battery boot
   crashed `surfaceflinger` and hung the boot. Launch the app by hand after the system is up.
+
+## Self-healing camera discovery (added after a DHCP move broke it)
+
+The RTSP IP in `secrets.xml` is only the *fast path*. If the camera stops answering there —
+e.g. DHCP hands it a new address — the app scans its own `/24` for hosts with the RTSP port
+open, tries each (the Back camera is skipped because it rejects these credentials), and locks
+onto whichever one actually renders frames. So a moved camera recovers on its own in a few
+reconnect cycles, with no rebuild and no router config. See `CameraLocator.java`.
